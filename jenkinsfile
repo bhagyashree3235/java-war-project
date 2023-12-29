@@ -1,0 +1,66 @@
+pipeline {
+    agent none
+    
+    environment {
+        VARIABLE_STRING = 'Hello'
+        VARIABLE_CHOICE = choice(name: 'city', choices: ['pune', 'kolhapur'], description: 'Choose an option')
+        VARIABLE_BOOLEAN = true
+    }
+
+    stages {
+        stage('Stage 1') {
+            agent { label 'jenkins-slave' }
+            steps {
+                script {
+                    echo "Running Stage 1 on agent2"
+                }
+            }
+        }
+
+        stage('Stage 2') {
+            agent { label 'jenkins-slave' }
+            steps {
+                script {
+                    echo "Running Stage 2 on agent1"
+                }
+            }
+        }
+
+        stage('Stage 3') {
+            agent { label 'Built-In Node'}
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+                expression { env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'dev' }
+            }
+            steps {
+                script {
+                    echo "Running Stage 3 with variables: ${VARIABLE_STRING}, ${VARIABLE_CHOICE}, ${VARIABLE_BOOLEAN}"
+                }
+            }
+        }
+
+        stage('Stage 4') {
+            agent { label 'Built-In Node'}
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
+            steps {
+                script {
+                    echo "Running Stage 4 triggering an Ant freestyle job"
+                    // Add code to trigger Ant freestyle job
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline succeeded! Sending email notification..."
+            // Add code to send email
+        }
+        failure {
+            echo "Pipeline failed! Sending email notification..."
+            // Add code to send email
+        }
+    }
+}
